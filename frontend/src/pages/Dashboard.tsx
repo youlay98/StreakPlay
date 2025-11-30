@@ -8,7 +8,7 @@ export const Dashboard: React.FC = () => {
 
     useEffect(() => {
         // Hardcoded user ID for MVP
-        api.get<Message[]>('/messages?userId=u1').then(res => setMessages(res.data)).catch(console.error);
+        api.get<Message[]>('/ai/messages?userId=u1').then(res => setMessages(res.data)).catch(console.error);
     }, []);
 
     const sendMessage = async () => {
@@ -48,7 +48,7 @@ export const Dashboard: React.FC = () => {
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex ${msg.role === 'USER' ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[80%] rounded p-3 ${msg.role === 'USER' ? 'bg-blue-600' :
-                                    msg.role === 'AI' ? 'bg-slate-700' : 'bg-slate-900 italic text-sm'
+                                msg.role === 'AI' ? 'bg-slate-700' : 'bg-slate-900 italic text-sm'
                                 }`}>
                                 {msg.text}
                             </div>

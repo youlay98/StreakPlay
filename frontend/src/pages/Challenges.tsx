@@ -6,7 +6,7 @@ export const Challenges: React.FC = () => {
     const [challenges, setChallenges] = useState<Challenge[]>([]);
 
     useEffect(() => {
-        api.get<Challenge[]>('/challenges').then(res => setChallenges(res.data)).catch(console.error);
+        api.get<Challenge[]>('/game/challenges').then(res => setChallenges(res.data)).catch(console.error);
     }, []);
 
     return (

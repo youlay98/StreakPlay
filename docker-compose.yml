@@ -1,35 +1,132 @@
 services:
-  postgres:
+  # Databases
+  auth-db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-gamenight}
+      POSTGRES_USER: gamenight
+      POSTGRES_PASSWORD: gamenight
+      POSTGRES_DB: auth_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - auth_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: [ "CMD-SHELL", "pg_isready -U gamenight -d auth_db" ]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  backend:
+  game-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: gamenight
+      POSTGRES_PASSWORD: gamenight
+      POSTGRES_DB: game_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - game_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U gamenight -d game_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ai-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: gamenight
+      POSTGRES_PASSWORD: gamenight
+      POSTGRES_DB: ai_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - ai_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U gamenight -d ai_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Infrastructure Services
+  discovery-service:
     build:
-      context: ./backend
+      context: ./discovery-service
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway-service:
+    build:
+      context: ./gateway-service
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=${DATABASE_URL}
-      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
     depends_on:
-      postgres:
+      discovery-service:
         condition: service_healthy
 
+  # Business Services
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-db:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=gamenight
+      - SPRING_DATASOURCE_PASSWORD=gamenight
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
+  game-service:
+    build:
+      context: ./game-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://game-db:5432/game_db
+      - SPRING_DATASOURCE_USERNAME=gamenight
+      - SPRING_DATASOURCE_PASSWORD=gamenight
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+      game-db:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ai-db:5432/ai_db
+      - SPRING_DATASOURCE_USERNAME=gamenight
+      - SPRING_DATASOURCE_PASSWORD=gamenight
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      ai-db:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
+  # Frontend
   frontend:
     build:
       context: ./frontend
@@ -37,8 +134,10 @@ services:
     ports:
       - "5173:80"
     depends_on:
-      backend:
+      gateway-service:
         condition: service_started
 
 volumes:
-  postgres_data:
+  auth_db_data:
+  game_db_data:
+  ai_db_data:

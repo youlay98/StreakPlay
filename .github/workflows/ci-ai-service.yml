@@ -1,0 +1,102 @@
+name: CI - AI Service
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'ai-service/**'
+      - '.github/workflows/ci-ai-service.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'ai-service/**'
+
+jobs:
+  test:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: gamenight
+          POSTGRES_PASSWORD: gamenight
+          POSTGRES_DB: ai_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: Run unit tests
+        working-directory: ./ai-service
+        run: mvn test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ai_db
+          SPRING_DATASOURCE_USERNAME: gamenight
+          SPRING_DATASOURCE_PASSWORD: gamenight
+      
+      - name: Run integration tests
+        working-directory: ./ai-service
+        run: mvn verify
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ai_db
+          SPRING_DATASOURCE_USERNAME: gamenight
+          SPRING_DATASOURCE_PASSWORD: gamenight
+      
+      - name: Generate code coverage report
+        working-directory: ./ai-service
+        run: mvn jacoco:report
+      
+      - name: Check code coverage (90% minimum)
+        working-directory: ./ai-service
+        run: mvn jacoco:check -Drules.coverage.minimum=0.90
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./ai-service/target/site/jacoco/jacoco.xml
+          flags: ai-service
+      
+      - name: Code quality - Checkstyle
+        working-directory: ./ai-service
+        run: mvn checkstyle:check
+        continue-on-error: true
+      
+      - name: Security scan - OWASP Dependency Check
+        working-directory: ./ai-service
+        run: mvn org.owasp:dependency-check-maven:check
+        continue-on-error: true
+      
+      - name: Secret scanning with Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build application
+        working-directory: ./ai-service
+        run: mvn clean package -DskipTests
+      
+      - name: Build Docker image
+        working-directory: ./ai-service
+        run: docker build -t ai-service:${{ github.sha }} .
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-service-jar
+          path: ai-service/target/*.jar
