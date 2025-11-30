@@ -1,4 +1,4 @@
-# Business Plan: DevOps Game Night
+# Business Plan: StreakPlay
 
 ## Vision
 To provide a stress-free, engaging environment for engineers to practice DevOps skills through daily gamified challenges.

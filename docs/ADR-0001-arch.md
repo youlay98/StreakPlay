@@ -1,7 +1,7 @@
 # ADR-0001: Modular Monolith Architecture
 
 ## Context
-We are building "DevOps Game Night", a learning platform. We need a system that is stable, easy to understand, and easy to change. We anticipate future growth but want to avoid premature complexity.
+We are building "StreakPlay", a learning platform. We need a system that is stable, easy to understand, and easy to change. We anticipate future growth but want to avoid premature complexity.
 
 ## Decision
 We will use a **Modular Monolith** architecture.

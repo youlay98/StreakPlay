@@ -9,7 +9,7 @@ export const Layout: React.FC = () => {
                 <div className="container mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-2 font-bold text-xl text-emerald-400">
                         <Terminal className="w-6 h-6" />
-                        <span>DevOps Game Night</span>
+                        <span>StreakPlay</span>
                     </div>
                     <nav className="flex gap-6">
                         <Link to="/" className="hover:text-emerald-400 transition-colors">Dashboard</Link>
