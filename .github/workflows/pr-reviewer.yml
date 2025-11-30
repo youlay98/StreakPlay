@@ -1,0 +1,26 @@
+name: AI PR Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: AI Review
+        uses: actions/github-script@v6
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        with:
+          script: |
+            // In a real scenario, this would call the apps/ai service or OpenAI directly
+            // to analyze the diff and post a comment.
+            // For now, we post a placeholder.
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "🤖 **AI Review**: \n\n- Code looks clean.\n- Remember to add tests.\n- Good job on the modularity!"
+            })

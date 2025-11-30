@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+.pnpm-store
+venv/
+__pycache__/
+*.egg-info/
+target/
+.gradle/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.DS_Store
+*.iml
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
