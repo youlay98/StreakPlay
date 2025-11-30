@@ -45,7 +45,7 @@ jobs:
           mvn jacoco:check -Drules.coverage.minimum=0.90
       
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: ./discovery-service/target/site/jacoco/jacoco.xml
           flags: discovery-service
@@ -74,7 +74,7 @@ jobs:
         run: docker build -t discovery-service:${{ github.sha }} .
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: discovery-service-jar
           path: discovery-service/target/*.jar

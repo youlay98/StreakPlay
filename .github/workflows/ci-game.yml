@@ -67,7 +67,7 @@ jobs:
         run: mvn jacoco:check -Drules.coverage.minimum=0.90
       
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: ./backend/game-service/target/site/jacoco/jacoco.xml
           flags: game-service
@@ -96,7 +96,7 @@ jobs:
         run: docker build -t game-service:${{ github.sha }} .
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: game-service-jar
           path: game-service/target/*.jar
