@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'discovery-service/**'
+      - 'backend/discovery-service/**'
       - '.github/workflows/ci-discovery.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'discovery-service/**'
+      - 'backend/discovery-service/**'
 
 jobs:
   test:
@@ -28,19 +28,19 @@ jobs:
           cache: 'maven'
       
       - name: Run unit tests
-        working-directory: ./discovery-service
+        working-directory: ./backend/discovery-service
         run: mvn test
       
       - name: Run integration tests
-        working-directory: ./discovery-service
+        working-directory: ./backend/discovery-service
         run: mvn verify
       
       - name: Generate code coverage report
-        working-directory: ./discovery-service
+        working-directory: ./backend/discovery-service
         run: mvn jacoco:report
       
       - name: Check code coverage (90% minimum)
-        working-directory: ./discovery-service
+        working-directory: ./backend/discovery-service
         run: |
           mvn jacoco:check -Drules.coverage.minimum=0.90
       
@@ -51,12 +51,12 @@ jobs:
           flags: discovery-service
       
       - name: Code quality - Checkstyle
-        working-directory: ./discovery-service
+        working-directory: ./backend/discovery-service
         run: mvn checkstyle:check
         continue-on-error: true
       
       - name: Security scan - OWASP Dependency Check
-        working-directory: ./discovery-service
+        working-directory: ./backend/discovery-service
         run: mvn org.owasp:dependency-check-maven:check
         continue-on-error: true
       
@@ -66,11 +66,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build application
-        working-directory: ./discovery-service
+        working-directory: ./backend/discovery-service
         run: mvn clean package -DskipTests
       
       - name: Build Docker image
-        working-directory: ./discovery-service
+        working-directory: ./backend/discovery-service
         run: docker build -t discovery-service:${{ github.sha }} .
       
       - name: Upload artifact

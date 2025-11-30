@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'game-service/**'
+      - 'backend/game-service/**'
       - '.github/workflows/ci-game.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'game-service/**'
+      - 'backend/game-service/**'
 
 jobs:
   test:
@@ -43,7 +43,7 @@ jobs:
           cache: 'maven'
       
       - name: Run unit tests
-        working-directory: ./game-service
+        working-directory: ./backend/game-service
         run: mvn test
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/game_db
@@ -51,7 +51,7 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: gamenight
       
       - name: Run integration tests
-        working-directory: ./game-service
+        working-directory: ./backend/game-service
         run: mvn verify
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/game_db
@@ -59,26 +59,26 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: gamenight
       
       - name: Generate code coverage report
-        working-directory: ./game-service
+        working-directory: ./backend/game-service
         run: mvn jacoco:report
       
       - name: Check code coverage (90% minimum)
-        working-directory: ./game-service
+        working-directory: ./backend/game-service
         run: mvn jacoco:check -Drules.coverage.minimum=0.90
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: ./game-service/target/site/jacoco/jacoco.xml
+          files: ./backend/game-service/target/site/jacoco/jacoco.xml
           flags: game-service
       
       - name: Code quality - Checkstyle
-        working-directory: ./game-service
+        working-directory: ./backend/game-service
         run: mvn checkstyle:check
         continue-on-error: true
       
       - name: Security scan - OWASP Dependency Check
-        working-directory: ./game-service
+        working-directory: ./backend/game-service
         run: mvn org.owasp:dependency-check-maven:check
         continue-on-error: true
       
@@ -88,11 +88,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build application
-        working-directory: ./game-service
+        working-directory: ./backend/game-service
         run: mvn clean package -DskipTests
       
       - name: Build Docker image
-        working-directory: ./game-service
+        working-directory: ./backend/game-service
         run: docker build -t game-service:${{ github.sha }} .
       
       - name: Upload artifact

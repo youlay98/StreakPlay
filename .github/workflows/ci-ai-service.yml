@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'ai-service/**'
+      - 'backend/ai-service/**'
       - '.github/workflows/ci-ai-service.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'ai-service/**'
+      - 'backend/ai-service/**'
 
 jobs:
   test:
@@ -43,7 +43,7 @@ jobs:
           cache: 'maven'
       
       - name: Run unit tests
-        working-directory: ./ai-service
+        working-directory: ./backend/ai-service
         run: mvn test
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ai_db
@@ -51,7 +51,7 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: gamenight
       
       - name: Run integration tests
-        working-directory: ./ai-service
+        working-directory: ./backend/ai-service
         run: mvn verify
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ai_db
@@ -59,26 +59,26 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: gamenight
       
       - name: Generate code coverage report
-        working-directory: ./ai-service
+        working-directory: ./backend/ai-service
         run: mvn jacoco:report
       
       - name: Check code coverage (90% minimum)
-        working-directory: ./ai-service
+        working-directory: ./backend/ai-service
         run: mvn jacoco:check -Drules.coverage.minimum=0.90
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: ./ai-service/target/site/jacoco/jacoco.xml
+          files: ./backend/ai-service/target/site/jacoco/jacoco.xml
           flags: ai-service
       
       - name: Code quality - Checkstyle
-        working-directory: ./ai-service
+        working-directory: ./backend/ai-service
         run: mvn checkstyle:check
         continue-on-error: true
       
       - name: Security scan - OWASP Dependency Check
-        working-directory: ./ai-service
+        working-directory: ./backend/ai-service
         run: mvn org.owasp:dependency-check-maven:check
         continue-on-error: true
       
@@ -88,11 +88,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build application
-        working-directory: ./ai-service
+        working-directory: ./backend/ai-service
         run: mvn clean package -DskipTests
       
       - name: Build Docker image
-        working-directory: ./ai-service
+        working-directory: ./backend/ai-service
         run: docker build -t ai-service:${{ github.sha }} .
       
       - name: Upload artifact
